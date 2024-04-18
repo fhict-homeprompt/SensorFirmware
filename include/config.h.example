@@ -1,0 +1,21 @@
+#ifndef CONFIG_H
+#define CONFIG_H
+
+// Pin definitions
+const int pinDHT = 32;
+const int pinLDR = 35;
+
+// WiFi credentials
+const char wlanName[] = "";
+const char wlanPassword[] = "";
+
+// InfluxDB credentials
+const char influxDBHost[] = "http://145.93.120.129:8086";
+const char influxDBOrg[] = "";
+const char influxDBToken[] = "";
+const char influxDBBucket[] = "esp32sensor";
+const char timezone[] = "UTC2";
+
+// Refresh time for sensor readings in ms
+const unsigned long refreshTime = 5000;
+#endif
