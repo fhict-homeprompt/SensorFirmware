@@ -7,6 +7,7 @@
 // Pin definitions
 const int pinDHT = 32;
 const int pinLDR = 35;
+const int pinLED = 14;
 
 // WiFi credentials
 const char wlanName[] = "";
@@ -17,6 +18,7 @@ const char influxDBHost[] = "http://145.93.120.129:8086";
 const char influxDBOrg[] = "";
 const char influxDBToken[] = "";
 const char influxDBBucket[] = "esp32sensor";
+const char influxDBSensor[] = "livingroom_sensor";
 const char timezone[] = "UTC2";
 
 // MQTT config
@@ -26,4 +28,9 @@ const char mqttTopic[] = "homeprompt/sensor/livingroom";
 
 // Refresh time for sensor readings in ms
 const unsigned long refreshTime = 5000;
+
+// Internal constants that maybe do not belong here
+const unsigned int taskLowPriority = 1;
+const unsigned int taskMediumPriority = 2;
+const unsigned int taskHighPriority = 3;
 #endif

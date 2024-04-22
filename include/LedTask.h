@@ -2,6 +2,7 @@
 #define LEDTASK_H
 
 #include <Arduino.h>
+#include "config.h"
 
 enum BoardStatus
 {
