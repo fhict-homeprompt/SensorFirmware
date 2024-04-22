@@ -3,15 +3,13 @@
 #include <InfluxDbCloud.h>
 #include "WiFi.h"
 #include "SensorTask.h"
+#include "InfluxTask.h"
 #include "config.h"
 
 SensorTask sensorTask;
-Point influxSensor("livingroom_sensor");
-InfluxDBClient influxClient(influxDBHost,
-                            influxDBOrg,
-                            influxDBBucket,
-                            influxDBToken,
-                            InfluxDbCloud2CACert);
+#ifdef ENABLE_INFLUXDB
+InfluxTask influxTask;
+#endif
 
 void setup()
 {
@@ -25,23 +23,19 @@ void setup()
     Serial.print(".");
     delay(100);
   }
-
   Serial.println("\nConnected to the WiFi network");
   Serial.print("Local ESP32 IP: ");
   Serial.println(WiFi.localIP());
   Serial.println("Syncing time");
   timeSync(timezone, "pool.ntp.org", "time.nis.gov");
+#ifdef ENABLE_INFLUXDB
   Serial.println("Connecting to InfluxDB");
-  if (influxClient.validateConnection())
+  if (!influxTask.connectIfNotConnected())
   {
-    Serial.print("Connected to InfluxDB: ");
-    Serial.println(influxClient.getServerUrl());
+    Serial.println("Failed to connect to InfluxDB");
+    Serial.println(influxTask.getLastErrorMessage());
   }
-  else
-  {
-    Serial.print("InfluxDB connection failed: ");
-    Serial.println(influxClient.getLastErrorMessage());
-  }
+#endif
 }
 
 void loop()
@@ -52,14 +46,23 @@ void loop()
                 sensorTask.getLdrReading(),
                 sensorTask.getTempReading(),
                 sensorTask.getHumReading());
-  influxSensor.clearFields();
-  influxSensor.addField("temperature", sensorTask.getTempReading());
-  influxSensor.addField("humidity", sensorTask.getHumReading());
-  influxSensor.addField("lightlevel", sensorTask.getLdrReading());
-  if (!influxClient.writePoint(influxSensor))
+  if (WiFi.status() != WL_CONNECTED)
   {
-    Serial.print("InfluxDB write failed: ");
-    Serial.println(influxClient.getLastErrorMessage());
+    Serial.println("WiFi connection lost. Reconnecting...");
+    WiFi.begin(wlanName, wlanPassword);
+    while (WiFi.status() != WL_CONNECTED)
+    {
+      delay(100);
+    }
+    Serial.println("WiFi reconnected");
   }
+#ifdef ENABLE_INFLUXDB
+  if ((!influxTask.connectIfNotConnected()) ||
+      (!influxTask.sendSensorData(sensorTask.getTempReading(), sensorTask.getHumReading(), sensorTask.getLdrReading())))
+  {
+    Serial.println("Failed to send data to InfluxDB");
+    Serial.println(influxTask.getLastErrorMessage());
+  }
+#endif
   vTaskDelay(refreshTime / portTICK_PERIOD_MS);
 }

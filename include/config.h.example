@@ -1,6 +1,9 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+// Uncomment to enable InfluxDB data collection
+// #define ENABLE_INFLUXDB
+
 // Pin definitions
 const int pinDHT = 32;
 const int pinLDR = 35;
