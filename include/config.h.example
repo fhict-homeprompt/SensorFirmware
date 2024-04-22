@@ -19,6 +19,11 @@ const char influxDBToken[] = "";
 const char influxDBBucket[] = "esp32sensor";
 const char timezone[] = "UTC2";
 
+// MQTT config
+const char mqttBroker[] = "test.mosquitto.org";
+const int mqttPort = 1883;
+const char mqttTopic[] = "homeprompt/sensor/livingroom";
+
 // Refresh time for sensor readings in ms
 const unsigned long refreshTime = 5000;
 #endif

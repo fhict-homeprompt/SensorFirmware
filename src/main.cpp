@@ -4,9 +4,11 @@
 #include "WiFi.h"
 #include "SensorTask.h"
 #include "InfluxTask.h"
+#include "MQTTTask.h"
 #include "config.h"
 
 SensorTask sensorTask;
+MQTTTask mqttTask;
 #ifdef ENABLE_INFLUXDB
 InfluxTask influxTask;
 #endif
@@ -36,6 +38,13 @@ void setup()
     Serial.println(influxTask.getLastErrorMessage());
   }
 #endif
+  Serial.println("Connecting to MQTT Broker");
+  if (!mqttTask.connect())
+  {
+    Serial.println("Failed to connect to MQTT broker");
+  } else {
+    Serial.println("Connected to MQTT broker");
+  }
 }
 
 void loop()
