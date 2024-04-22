@@ -5,10 +5,13 @@
 #include "SensorTask.h"
 #include "InfluxTask.h"
 #include "MQTTTask.h"
+#include "LedTask.h"
 #include "config.h"
 
 SensorTask sensorTask;
 MQTTTask mqttTask;
+LedTask ledTask;
+
 #ifdef ENABLE_INFLUXDB
 InfluxTask influxTask;
 #endif
@@ -17,6 +20,8 @@ void setup()
 {
   Serial.begin(9600);
   Serial.println(WiFi.macAddress());
+  ledTask.start();
+  ledTask.setLedStatus(BOARD_STATUS_INITIALIZING);
   WiFi.mode(WIFI_STA);
   WiFi.begin(wlanName, wlanPassword);
   Serial.println("\nConnecting");
@@ -45,6 +50,7 @@ void setup()
   } else {
     Serial.println("Connected to MQTT broker");
   }
+  ledTask.setLedStatus(BOARD_STATUS_OK);
 }
 
 void loop()
