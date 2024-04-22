@@ -1,6 +1,8 @@
 #include "SensorTask.h"
 #include "config.h"
 
+const static char TASKNAME[] = "sensorTask";
+
 SensorTask::SensorTask() : dht(pinDHT, DHT11)
 {
     lastTempReading = 0;
@@ -9,7 +11,23 @@ SensorTask::SensorTask() : dht(pinDHT, DHT11)
     dht.begin();
 }
 
-void SensorTask::runTask()
+static void runTask(void *pvParameters)
+{
+    SensorTask *task = (SensorTask *)pvParameters;
+    TickType_t lastWakeTime = xTaskGetTickCount();
+    while (true)
+    {
+        task->readSensors();
+        xTaskDelayUntil(&lastWakeTime, refreshTime / portTICK_PERIOD_MS);
+    }
+}
+
+void SensorTask::start()
+{
+    xTaskCreate(runTask, TASKNAME, 2048, this, taskHighPriority, NULL);
+}
+
+void SensorTask::readSensors()
 {
     lastTempReading = dht.readTemperature();
     lastHumReading = dht.readHumidity();

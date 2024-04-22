@@ -15,7 +15,8 @@ private:
 
 public:
     SensorTask();
-    void runTask();
+    void readSensors();
+    void start();
     float getTempReading();
     float getHumReading();
     unsigned int getLdrReading();

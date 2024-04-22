@@ -18,6 +18,7 @@ InfluxTask influxTask;
 
 void setup()
 {
+  vTaskPrioritySet(NULL, taskMediumPriority);
   Serial.begin(9600);
   Serial.println(WiFi.macAddress());
   ledTask.start();
@@ -47,15 +48,17 @@ void setup()
   if (!mqttTask.connect())
   {
     Serial.println("Failed to connect to MQTT broker");
-  } else {
+  }
+  else
+  {
     Serial.println("Connected to MQTT broker");
   }
   ledTask.setLedStatus(BOARD_STATUS_OK);
+  sensorTask.start();
 }
 
 void loop()
 {
-  sensorTask.runTask();
   Serial.printf("Read time: %u\n\tLDR Sensor: %d/4095\n\tDHT Temp: %f C\n\tDHT Humidity: %f\n",
                 sensorTask.getLastReadingTime(),
                 sensorTask.getLdrReading(),
