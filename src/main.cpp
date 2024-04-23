@@ -1,5 +1,6 @@
 #include <Arduino.h>
-#include "WiFi.h"
+#include <WiFi.h>
+#include <WiFiManager.h>
 #include "SensorTask.h"
 #include "MQTTTask.h"
 #include "LedTask.h"
@@ -20,21 +21,29 @@ SensorAlarm sensorAlarm({.queue = NULL,
 void initializePeripherals()
 {
   Serial.begin(9600);
+  pinMode(pinBTN, INPUT_PULLUP);
   ledTask.start();
   ledTask.setLedStatus(BOARD_STATUS_INITIALIZING);
 }
 
 void initializeAndWaitForWLAN()
 {
+  WiFiManager wifiManager;
   WiFi.mode(WIFI_STA);
-  WiFi.begin(wlanName, wlanPassword);
-  Serial.println(WiFi.macAddress());
-  Serial.println("\nConnecting");
-  while (WiFi.status() != WL_CONNECTED)
+  if (digitalRead(pinBTN) == LOW)
   {
-    vTaskDelay(100);
+    Serial.println("Resetting WiFi credentials");
+    wifiManager.resetSettings();
   }
-  Serial.println("\nConnected to the WiFi network");
+  if (wifiManager.autoConnect())
+  {
+    Serial.println("Connected to the WiFi network");
+  }
+  else
+  {
+    Serial.println("Failed to connect to the WiFi network");
+    esp_restart();
+  }
   Serial.print("Local ESP32 IP: ");
   Serial.println(WiFi.localIP());
 }
@@ -76,12 +85,8 @@ void loop()
 {
   if (WiFi.status() != WL_CONNECTED)
   {
-    Serial.println("WiFi connection lost. Reconnecting...");
-    WiFi.begin(wlanName, wlanPassword);
-    while (WiFi.status() != WL_CONNECTED)
-    {
-      vTaskDelay(100);
-    }
-    Serial.println("WiFi reconnected");
+    Serial.println("WiFi connection lost. Restarting ESP32!");
+    esp_restart();
   }
+  vTaskDelay(100);
 }

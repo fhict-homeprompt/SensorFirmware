@@ -5,18 +5,7 @@
 const int pinDHT = 32;
 const int pinLDR = 35;
 const int pinLED = 14;
-
-// WiFi credentials
-const char wlanName[] = "";
-const char wlanPassword[] = "";
-
-// InfluxDB credentials
-const char influxDBHost[] = "http://145.93.120.129:8086";
-const char influxDBOrg[] = "";
-const char influxDBToken[] = "";
-const char influxDBBucket[] = "esp32sensor";
-const char influxDBSensor[] = "livingroom_sensor";
-const char timezone[] = "UTC2";
+const int pinBTN = 27;
 
 // MQTT config
 const char mqttBroker[] = "test.mosquitto.org";
