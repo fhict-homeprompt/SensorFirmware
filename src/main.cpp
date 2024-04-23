@@ -69,6 +69,7 @@ void initializeServices()
   }
   mqttTask.start(SensorAlarmQueue);
   sensorTask.setAlarm(&sensorAlarm);
+  sensorTask.start();
   ledTask.setLedStatus(BOARD_STATUS_OK);
 }
 
@@ -86,7 +87,6 @@ void setup()
   initializePeripherals();
   initializeAndWaitForWLAN();
   initializeServices();
-  sensorTask.start();
 }
 
 void loop()
@@ -97,17 +97,8 @@ void loop()
     WiFi.begin(wlanName, wlanPassword);
     while (WiFi.status() != WL_CONNECTED)
     {
-      delay(100);
+      vTaskDelay(100);
     }
     Serial.println("WiFi reconnected");
   }
-#ifdef ENABLE_INFLUXDB
-  if ((!influxTask.connectIfNotConnected()) ||
-      (!influxTask.sendSensorData(sensorTask.getTempReading(), sensorTask.getHumReading(), sensorTask.getLdrReading())))
-  {
-    Serial.println("Failed to send data to InfluxDB");
-    Serial.println(influxTask.getLastErrorMessage());
-  }
-#endif
-  vTaskDelay(serialPrintTime / portTICK_PERIOD_MS);
 }
