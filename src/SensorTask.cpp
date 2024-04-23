@@ -107,16 +107,8 @@ void SensorAlarm::sendLdrAlarmMessage(unsigned int ldrReading)
 {
     SensorAlarmMessage message;
     message.type = ldrTresholdExceeded ? LDR_TRESHOLD_EXCEEDED : LDR_TRESHOLD_NORMAL;
-    message.timestamp = millis();
     message.ldrReading = ldrReading;
-    if (xQueueSend(config.queue, &message, 0) != pdTRUE)
-    {
-        Serial.println("Failed to send LDR alarm message");
-    }
-    else
-    {
-        Serial.println("Sent LDR alarm message");
-    }
+    xQueueSend(config.queue, &message, 0);
 }
 
 void SensorAlarm::setQueue(QueueHandle_t queue)

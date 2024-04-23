@@ -21,7 +21,6 @@ enum SensorAlarmMessageType
 struct SensorAlarmMessage
 {
     SensorAlarmMessageType type;
-    unsigned long timestamp;
     unsigned int ldrReading;
 };
 

@@ -18,7 +18,7 @@ public:
     MQTTTask();
     void start(QueueHandle_t sensorAlarmQueue);
     bool connect();
-    bool sendLightAlarm(int lightValue, int duration);
+    bool sendLightAlarm(int lightValue);
     QueueHandle_t getSensorAlarmQueue();
 };
 

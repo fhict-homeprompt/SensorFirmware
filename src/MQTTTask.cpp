@@ -18,7 +18,7 @@ static void runTask(void *pvParameters)
         {
             if (message.type == LDR_TRESHOLD_EXCEEDED)
             {
-                task->sendLightAlarm(message.ldrReading, message.timestamp);
+                task->sendLightAlarm(message.ldrReading);
             }
         }
         vTaskDelay(100);
@@ -42,12 +42,10 @@ bool MQTTTask::publishMessage(String topic, String payload)
     return (esp_mqtt_client_publish(mqttClientHandle, fullTopic.c_str(), payload.c_str(), payload.length(), 0, 0) != -1);
 }
 
-bool MQTTTask::sendLightAlarm(int lightValue, int duration)
+bool MQTTTask::sendLightAlarm(int lightValue)
 {
-    String payload = "LampOn," +
-                     String(lightValue) +
-                     "," +
-                     String(duration);
+    String payload = "LightTresholdExceeded," +
+                     String(lightValue);
     return publishMessage("alert", payload);
 }
 
