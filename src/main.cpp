@@ -4,19 +4,17 @@
 #include "SensorTask.h"
 #include "MQTTTask.h"
 #include "LedTask.h"
-#include "config.h"
+#include "Configuration.h"
 
-SensorTask sensorTask;
-MQTTTask mqttTask;
+ConfigurationLoader configLoader;
 LedTask ledTask;
+MQTTTask *mqttTask;
+SensorTask *sensorTask;
+SensorAlarm *sensorAlarm;
 
+AppConfig configuration;
 QueueHandle_t SensorAlarmQueue;
 QueueHandle_t LedQueue;
-
-SensorAlarm sensorAlarm({.queue = NULL,
-                         .ldrTreshold = ldrTreshold,
-                         .ldrTriggerDelay = ldrTriggerDelay,
-                         .ldrResetDelay = ldrResetDelay});
 
 void initializePeripherals()
 {
@@ -50,8 +48,13 @@ void initializeAndWaitForWLAN()
 
 void initializeServices()
 {
+  mqttTask = new MQTTTask(configuration.mqttConfig);
+  sensorTask = new SensorTask();
+  sensorAlarm = new SensorAlarm({.queue = SensorAlarmQueue,
+                                 .sensorConfig = configuration.sensorConfig});
+
   Serial.println("Connecting to MQTT Broker");
-  if (!mqttTask.connect())
+  if (!mqttTask->connect())
   {
     Serial.println("Failed to connect to MQTT broker");
   }
@@ -59,9 +62,9 @@ void initializeServices()
   {
     Serial.println("Connected to MQTT broker");
   }
-  mqttTask.start(SensorAlarmQueue);
-  sensorTask.setAlarm(&sensorAlarm);
-  sensorTask.start();
+  mqttTask->start(SensorAlarmQueue);
+  sensorTask->setAlarm(sensorAlarm);
+  sensorTask->start();
   ledTask.setLedStatus(BOARD_STATUS_OK);
 }
 
@@ -69,12 +72,16 @@ void initializeQueues()
 {
   SensorAlarmQueue = xQueueCreate(5, sizeof(SensorAlarmMessage));
   LedQueue = xQueueCreate(5, sizeof(BoardStatus));
-  sensorAlarm.setQueue(SensorAlarmQueue);
 }
 
 void setup()
 {
   vTaskPrioritySet(NULL, taskMediumPriority);
+  if (!configLoader.loadConfig(&configuration))
+  {
+    Serial.println("main: Failed to load configuration. Using default configuration.");
+    configLoader.loadDefaultConfig(&configuration);
+  }
   initializeQueues();
   initializePeripherals();
   initializeAndWaitForWLAN();
@@ -85,7 +92,7 @@ void loop()
 {
   if (WiFi.status() != WL_CONNECTED)
   {
-    Serial.println("WiFi connection lost. Restarting ESP32!");
+    Serial.println("main: WiFi connection lost. Restarting ESP32!");
     esp_restart();
   }
   vTaskDelay(100);

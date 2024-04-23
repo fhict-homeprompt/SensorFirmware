@@ -1,9 +1,11 @@
 #include "MQTTTask.h"
 
-MQTTTask::MQTTTask()
+MQTTTask::MQTTTask(AppConfig::MqttConfig config)
 {
-    mqttClientConfig.host = mqttBroker;
-    mqttClientConfig.port = mqttPort;
+    mqttConfig = config;
+    mqttClientConfig = {};
+    mqttClientConfig.host = mqttConfig.mqttBroker;
+    mqttClientConfig.port = mqttConfig.mqttPort;
     mqttClientHandle = esp_mqtt_client_init(&mqttClientConfig);
 }
 
@@ -43,7 +45,7 @@ bool MQTTTask::connect()
 
 bool MQTTTask::publishMessage(String topic, String payload)
 {
-    String fullTopic = mqttTopic + topic;
+    String fullTopic = String(mqttConfig.mqttTopic) + "/" + topic;
     return (esp_mqtt_client_publish(mqttClientHandle, fullTopic.c_str(), payload.c_str(), payload.length(), 0, 0) != -1);
 }
 

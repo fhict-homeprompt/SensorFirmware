@@ -3,15 +3,13 @@
 
 #include <Arduino.h>
 #include <DHT.h>
-#include "config.h"
+#include "Configuration.h"
 #include "LedTask.h"
 
 struct SensorAlarmConfig
 {
     QueueHandle_t queue;
-    unsigned int ldrTreshold;
-    unsigned long ldrTriggerDelay;
-    unsigned long ldrResetDelay;
+    AppConfig::SensorConfig sensorConfig;
 };
 
 enum SensorAlarmMessageType

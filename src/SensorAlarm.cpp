@@ -11,7 +11,7 @@ void SensorAlarm::checkAlarm(unsigned int ldrReading)
 {
     unsigned long currentTime = millis();
 
-    if (ldrReading > config.ldrTreshold)
+    if (ldrReading > config.sensorConfig.ldrTreshold)
     {
         if (ldrTresholdLastTriggered == 0)
         {
@@ -19,7 +19,7 @@ void SensorAlarm::checkAlarm(unsigned int ldrReading)
         }
         else if (!ldrTresholdExceeded)
         {
-            if (currentTime - ldrTresholdLastTriggered > config.ldrTriggerDelay)
+            if (currentTime - ldrTresholdLastTriggered > config.sensorConfig.ldrTriggerDelay)
             {
                 ldrTresholdExceeded = true;
                 ldrTresholdLastTriggered = millis();
@@ -30,7 +30,7 @@ void SensorAlarm::checkAlarm(unsigned int ldrReading)
     }
     else if (ldrTresholdExceeded)
     {
-        if (currentTime - ldrTresholdLastTriggered > config.ldrResetDelay)
+        if (currentTime - ldrTresholdLastTriggered > config.sensorConfig.ldrResetDelay)
         {
             ldrTresholdExceeded = false;
             ldrTresholdLastTriggered = 0;

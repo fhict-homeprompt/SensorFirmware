@@ -2,7 +2,7 @@
 #define LEDTASK_H
 
 #include <Arduino.h>
-#include "config.h"
+#include "Configuration.h"
 
 extern QueueHandle_t LedQueue;
 
