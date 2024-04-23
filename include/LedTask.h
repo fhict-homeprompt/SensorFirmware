@@ -4,6 +4,8 @@
 #include <Arduino.h>
 #include "config.h"
 
+extern QueueHandle_t LedQueue;
+
 enum BoardStatus
 {
     BOARD_STATUS_OK,
@@ -14,13 +16,10 @@ enum BoardStatus
 
 class LedTask
 {
-    private:
-        TaskHandle_t ledTaskHandle;
     public:
-        BoardStatus boardStatus;
         LedTask();
         void start();
-        void setLedStatus(BoardStatus status);
+        static void setLedStatus(BoardStatus status);
 };
 
 #endif

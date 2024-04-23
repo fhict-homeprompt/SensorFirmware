@@ -1,5 +1,4 @@
 #include "SensorTask.h"
-#include "config.h"
 
 const static char TASKNAME[] = "sensorTask";
 
@@ -88,6 +87,7 @@ void SensorAlarm::checkAlarm(unsigned int ldrReading)
             {
                 ldrTresholdExceeded = true;
                 ldrTresholdLastTriggered = millis();
+                LedTask::setLedStatus(BOARD_STATUS_ALARM);
                 sendLdrAlarmMessage(ldrReading);
             }
         }
@@ -98,6 +98,7 @@ void SensorAlarm::checkAlarm(unsigned int ldrReading)
         {
             ldrTresholdExceeded = false;
             ldrTresholdLastTriggered = 0;
+            LedTask::setLedStatus(BOARD_STATUS_OK);
             sendLdrAlarmMessage(ldrReading);
         }
     }

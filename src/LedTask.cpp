@@ -5,7 +5,6 @@ const static char TASKNAME[] = "ledTask";
 LedTask::LedTask()
 {
     pinMode(pinLED, OUTPUT);
-    ledTaskHandle = NULL;
 }
 
 static void blinkLed(int delay, int times)
@@ -21,10 +20,11 @@ static void blinkLed(int delay, int times)
 
 static void ledThread(void *pvParameters)
 {
+    BoardStatus boardStatus = BOARD_STATUS_OK;
     while (true)
     {
-        LedTask *task = (LedTask *)pvParameters;
-        switch (task->boardStatus)
+        xQueueReceive(LedQueue, &boardStatus, 0);
+        switch (boardStatus)
         {
         case BOARD_STATUS_OK:
             digitalWrite(pinLED, HIGH);
@@ -46,10 +46,10 @@ static void ledThread(void *pvParameters)
 
 void LedTask::start()
 {
-    xTaskCreate(ledThread, TASKNAME, 1024, this, taskLowPriority, NULL);
+    xTaskCreate(ledThread, TASKNAME, 1024, NULL, taskLowPriority, NULL);
 }
 
 void LedTask::setLedStatus(BoardStatus status)
 {
-    boardStatus = status;
+    xQueueSend(LedQueue, &status, 0);
 }

@@ -17,6 +17,7 @@ InfluxTask influxTask;
 #endif
 
 QueueHandle_t SensorAlarmQueue;
+QueueHandle_t LedQueue;
 
 SensorAlarm sensorAlarm({.queue = NULL,
                          .ldrTreshold = ldrTreshold,
@@ -74,14 +75,15 @@ void initializeServices()
 void initializeQueues()
 {
   SensorAlarmQueue = xQueueCreate(5, sizeof(SensorAlarmMessage));
+  LedQueue = xQueueCreate(5, sizeof(BoardStatus));
   sensorAlarm.setQueue(SensorAlarmQueue);
 }
 
 void setup()
 {
   vTaskPrioritySet(NULL, taskMediumPriority);
-  initializePeripherals();
   initializeQueues();
+  initializePeripherals();
   initializeAndWaitForWLAN();
   initializeServices();
   sensorTask.start();

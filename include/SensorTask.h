@@ -3,6 +3,8 @@
 
 #include <Arduino.h>
 #include <DHT.h>
+#include "config.h"
+#include "LedTask.h"
 
 struct SensorAlarmConfig
 {
