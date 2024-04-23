@@ -7,6 +7,12 @@
 #include "config.h"
 #include "SensorTask.h"
 
+enum AlarmState
+{
+    ALARM_TRIGGERED,
+    ALARM_RESET
+};
+
 class MQTTTask
 {
 private:
@@ -18,7 +24,7 @@ public:
     MQTTTask();
     void start(QueueHandle_t sensorAlarmQueue);
     bool connect();
-    bool sendLightAlarm(int lightValue);
+    bool sendLightAlarm(int lightValue, AlarmState state);
     QueueHandle_t getSensorAlarmQueue();
 };
 

@@ -16,9 +16,14 @@ static void runTask(void *pvParameters)
     {
         if (xQueueReceive(task->getSensorAlarmQueue(), &message, 0) == pdTRUE)
         {
-            if (message.type == LDR_TRESHOLD_EXCEEDED)
+            switch (message.type)
             {
-                task->sendLightAlarm(message.ldrReading);
+                case LDR_TRESHOLD_EXCEEDED:
+                    task->sendLightAlarm(message.ldrReading, ALARM_TRIGGERED);
+                    break;
+                case LDR_TRESHOLD_NORMAL:
+                    task->sendLightAlarm(message.ldrReading, ALARM_RESET);
+                    break;
             }
         }
         vTaskDelay(100);
@@ -42,10 +47,10 @@ bool MQTTTask::publishMessage(String topic, String payload)
     return (esp_mqtt_client_publish(mqttClientHandle, fullTopic.c_str(), payload.c_str(), payload.length(), 0, 0) != -1);
 }
 
-bool MQTTTask::sendLightAlarm(int lightValue)
+bool MQTTTask::sendLightAlarm(int lightValue, AlarmState state)
 {
-    String payload = "LightTresholdExceeded," +
-                     String(lightValue);
+    String eventName = state == ALARM_TRIGGERED ? "LightTresholdExceeded" : "LightTresholdNormal";
+    String payload = eventName + "," + String(lightValue);
     return publishMessage("alert", payload);
 }
 
