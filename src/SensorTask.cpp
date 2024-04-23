@@ -8,6 +8,7 @@ SensorTask::SensorTask() : dht(pinDHT, DHT11)
     lastTempReading = 0;
     lastHumReading = 0;
     lastReadingTime = 0;
+    alarm = NULL;
     dht.begin();
 }
 
@@ -33,6 +34,10 @@ void SensorTask::readSensors()
     lastHumReading = dht.readHumidity();
     lastLdrReading = analogRead(pinLDR);
     lastReadingTime = millis();
+    if (alarm != NULL)
+    {
+        alarm->checkAlarm(lastLdrReading);
+    }
 }
 
 float SensorTask::getTempReading()
@@ -53,4 +58,68 @@ unsigned int SensorTask::getLdrReading()
 unsigned long SensorTask::getLastReadingTime()
 {
     return lastReadingTime;
+}
+
+void SensorTask::setAlarm(SensorAlarm *alarm)
+{
+    this->alarm = alarm;
+}
+
+SensorAlarm::SensorAlarm(SensorAlarmConfig config)
+{
+    this->config = config;
+    ldrTresholdLastTriggered = 0;
+    ldrTresholdExceeded = false;
+}
+
+void SensorAlarm::checkAlarm(unsigned int ldrReading)
+{
+    unsigned long currentTime = millis();
+
+    if (ldrReading > config.ldrTreshold)
+    {
+        if (ldrTresholdLastTriggered == 0)
+        {
+            ldrTresholdLastTriggered = currentTime;
+        }
+        else if (!ldrTresholdExceeded)
+        {
+            if (currentTime - ldrTresholdLastTriggered > config.ldrTriggerDelay)
+            {
+                ldrTresholdExceeded = true;
+                ldrTresholdLastTriggered = millis();
+                sendLdrAlarmMessage(ldrReading);
+            }
+        }
+    }
+    else if (ldrTresholdExceeded)
+    {
+        if (currentTime - ldrTresholdLastTriggered > config.ldrResetDelay)
+        {
+            ldrTresholdExceeded = false;
+            ldrTresholdLastTriggered = 0;
+            sendLdrAlarmMessage(ldrReading);
+        }
+    }
+}
+
+void SensorAlarm::sendLdrAlarmMessage(unsigned int ldrReading)
+{
+    SensorAlarmMessage message;
+    message.type = ldrTresholdExceeded ? LDR_TRESHOLD_EXCEEDED : LDR_TRESHOLD_NORMAL;
+    message.timestamp = millis();
+    message.ldrReading = ldrReading;
+    if (xQueueSend(config.queue, &message, 0) != pdTRUE)
+    {
+        Serial.println("Failed to send LDR alarm message");
+    }
+    else
+    {
+        Serial.println("Sent LDR alarm message");
+    }
+}
+
+void SensorAlarm::setQueue(QueueHandle_t queue)
+{
+    config.queue = queue;
 }

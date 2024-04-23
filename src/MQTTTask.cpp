@@ -7,6 +7,30 @@ MQTTTask::MQTTTask()
     mqttClientHandle = esp_mqtt_client_init(&mqttClientConfig);
 }
 
+static void runTask(void *pvParameters)
+{
+    MQTTTask *task = (MQTTTask *)pvParameters;
+    SensorAlarmMessage message;
+
+    while (true)
+    {
+        if (xQueueReceive(task->getSensorAlarmQueue(), &message, 0) == pdTRUE)
+        {
+            if (message.type == LDR_TRESHOLD_EXCEEDED)
+            {
+                task->sendLightAlarm(message.ldrReading, message.timestamp);
+            }
+        }
+        vTaskDelay(100);
+    }
+}
+
+void MQTTTask::start(QueueHandle_t sensorAlarmQueue)
+{
+    this->SensorAlarmQueue = sensorAlarmQueue;
+    xTaskCreate(runTask, "mqttTask", 2048, this, taskMediumPriority, NULL);
+}
+
 bool MQTTTask::connect()
 {
     return (esp_mqtt_client_start(mqttClientHandle) == ESP_OK);
@@ -25,4 +49,9 @@ bool MQTTTask::sendLightAlarm(int lightValue, int duration)
                      "," +
                      String(duration);
     return publishMessage("alert", payload);
+}
+
+QueueHandle_t MQTTTask::getSensorAlarmQueue()
+{
+    return SensorAlarmQueue;
 }
