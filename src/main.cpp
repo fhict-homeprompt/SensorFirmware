@@ -1,9 +1,6 @@
 #include <Arduino.h>
-#include <InfluxDbClient.h>
-#include <InfluxDbCloud.h>
 #include "WiFi.h"
 #include "SensorTask.h"
-#include "InfluxTask.h"
 #include "MQTTTask.h"
 #include "LedTask.h"
 #include "config.h"
@@ -11,10 +8,6 @@
 SensorTask sensorTask;
 MQTTTask mqttTask;
 LedTask ledTask;
-
-#ifdef ENABLE_INFLUXDB
-InfluxTask influxTask;
-#endif
 
 QueueHandle_t SensorAlarmQueue;
 QueueHandle_t LedQueue;
@@ -48,16 +41,6 @@ void initializeAndWaitForWLAN()
 
 void initializeServices()
 {
-  Serial.println("Syncing time");
-  timeSync(timezone, "pool.ntp.org", "time.nis.gov");
-#ifdef ENABLE_INFLUXDB
-  Serial.println("Connecting to InfluxDB");
-  if (!influxTask.connectIfNotConnected())
-  {
-    Serial.println("Failed to connect to InfluxDB");
-    Serial.println(influxTask.getLastErrorMessage());
-  }
-#endif
   Serial.println("Connecting to MQTT Broker");
   if (!mqttTask.connect())
   {
