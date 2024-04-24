@@ -12,6 +12,7 @@ struct AppConfig
         char *mqttBroker;
         char *mqttTopic;
         int mqttPort;
+        unsigned long keepAliveInterval;
     } mqttConfig;
     struct SensorConfig
     {

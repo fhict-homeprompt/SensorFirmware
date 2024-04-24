@@ -52,7 +52,6 @@ void initializeServices()
   sensorTask = new SensorTask();
   sensorAlarm = new SensorAlarm({.queue = SensorAlarmQueue,
                                  .sensorConfig = configuration.sensorConfig});
-
   mqttTask->start(SensorAlarmQueue);
   sensorTask->setAlarm(sensorAlarm);
   sensorTask->start();

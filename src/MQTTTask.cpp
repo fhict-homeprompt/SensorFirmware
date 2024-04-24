@@ -10,37 +10,54 @@ MQTTTask::MQTTTask(AppConfig::MqttConfig config)
     connected = false;
 }
 
+static bool reconnectIfNotConnected(MQTTTask *task)
+{
+    if (!task->isConnected())
+    {
+        Serial.println("mqtt: Connecting to Broker");
+        if (!task->connect())
+        {
+            Serial.println("mqtt: No connection to MQTT");
+            Serial.println("mqtt: Discarded alarm");
+            return false;
+        }
+        else
+        {
+            Serial.println("mqtt: Connected to Broker");
+        }
+    }
+    return true;
+}
+
 static void runTask(void *pvParameters)
 {
     MQTTTask *task = (MQTTTask *)pvParameters;
     SensorAlarmMessage message;
+    unsigned long lastKeepAlive = 0;
 
     while (true)
     {
-        if (xQueueReceive(task->getSensorAlarmQueue(), &message, 0) == pdTRUE)
+        unsigned long currentTime = millis();
+        if (currentTime - lastKeepAlive > task->mqttConfig.keepAliveInterval &&
+            reconnectIfNotConnected(task))
         {
-            if (!task->isConnected())
+            if (!task->sendAliveMessage())
             {
-                Serial.println("mqtt: Connecting to Broker");
-                if (!task->connect())
-                {
-                    Serial.println("mqtt: No connection to MQTT");
-                    Serial.println("mqtt: Discarded alarm");
-                    continue;
-                }
-                else
-                {
-                    Serial.println("mqtt: Connected to Broker");
-                }
+                Serial.println("mqtt: Failed to send alive message");
             }
+            lastKeepAlive = currentTime;
+        }
+        if (xQueueReceive(task->getSensorAlarmQueue(), &message, 0) == pdTRUE &&
+            reconnectIfNotConnected(task))
+        {
             switch (message.type)
             {
-                case LDR_TRESHOLD_EXCEEDED:
-                    task->sendLightAlarm(message.ldrReading, ALARM_TRIGGERED);
-                    break;
-                case LDR_TRESHOLD_NORMAL:
-                    task->sendLightAlarm(message.ldrReading, ALARM_RESET);
-                    break;
+            case LDR_TRESHOLD_EXCEEDED:
+                task->sendLightAlarm(message.ldrReading, ALARM_TRIGGERED);
+                break;
+            case LDR_TRESHOLD_NORMAL:
+                task->sendLightAlarm(message.ldrReading, ALARM_RESET);
+                break;
             }
         }
         vTaskDelay(100);
@@ -77,6 +94,11 @@ bool MQTTTask::sendLightAlarm(int lightValue, AlarmState state)
         return false;
     }
     return true;
+}
+
+bool MQTTTask::sendAliveMessage()
+{
+    return publishMessage("alive", "true");
 }
 
 QueueHandle_t MQTTTask::getSensorAlarmQueue()

@@ -6,13 +6,12 @@ AppConfig defaultConfig = {
         .mqttBroker = NULL,
         .mqttTopic = NULL,
         .mqttPort = 1883,
-    },
+        .keepAliveInterval = 30000},
     .sensorConfig = {
         .ldrTreshold = 1000,
         .ldrTriggerDelay = 5000,
         .ldrResetDelay = 5000,
-    }
-};
+    }};
 
 void ConfigurationLoader::loadDefaultConfig(AppConfig *config)
 {
@@ -45,7 +44,7 @@ bool ConfigurationLoader::loadConfig(AppConfig *config)
     }
     memcpy(config, &configBuffer, sizeof(AppConfig));
     configFile.close();
-    return true;   
+    return true;
 }
 
 bool ConfigurationLoader::saveConfig(AppConfig *config)
