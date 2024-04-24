@@ -53,15 +53,6 @@ void initializeServices()
   sensorAlarm = new SensorAlarm({.queue = SensorAlarmQueue,
                                  .sensorConfig = configuration.sensorConfig});
 
-  Serial.println("Connecting to MQTT Broker");
-  if (!mqttTask->connect())
-  {
-    Serial.println("Failed to connect to MQTT broker");
-  }
-  else
-  {
-    Serial.println("Connected to MQTT broker");
-  }
   mqttTask->start(SensorAlarmQueue);
   sensorTask->setAlarm(sensorAlarm);
   sensorTask->start();

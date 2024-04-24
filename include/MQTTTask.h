@@ -21,11 +21,14 @@ private:
     AppConfig::MqttConfig mqttConfig;
     QueueHandle_t SensorAlarmQueue;
     bool publishMessage(String topic, String payload);
+    bool connected;
+
 public:
     MQTTTask(AppConfig::MqttConfig config);
     void start(QueueHandle_t sensorAlarmQueue);
-    bool connect();
     bool sendLightAlarm(int lightValue, AlarmState state);
+    bool connect();
+    bool isConnected();
     QueueHandle_t getSensorAlarmQueue();
 };
 
