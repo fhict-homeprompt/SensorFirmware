@@ -2,6 +2,7 @@
 #define CONFIGURATION_H
 
 #include <Arduino.h>
+#include <SPIFFS.h>
 
 struct AppConfig
 {
@@ -24,6 +25,7 @@ class ConfigurationLoader
 {
 public:
     bool loadConfig(AppConfig *config);
+    bool saveConfig(AppConfig *config);
     void loadDefaultConfig(AppConfig *config);
 };
 

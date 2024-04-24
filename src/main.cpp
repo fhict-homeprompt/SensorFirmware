@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <WiFiManager.h>
+#include <SPIFFS.h>
 #include "SensorTask.h"
 #include "MQTTTask.h"
 #include "LedTask.h"
@@ -18,7 +19,6 @@ QueueHandle_t LedQueue;
 
 void initializePeripherals()
 {
-  Serial.begin(9600);
   pinMode(pinBTN, INPUT_PULLUP);
   ledTask.start();
   ledTask.setLedStatus(BOARD_STATUS_INITIALIZING);
@@ -74,9 +74,20 @@ void initializeQueues()
   LedQueue = xQueueCreate(5, sizeof(BoardStatus));
 }
 
+void initializeFilesystem()
+{
+  if (!SPIFFS.begin())
+  {
+    Serial.println("main: Failed to mount file system. Please reflash.");
+    while (1) {}
+  }
+}
+
 void setup()
 {
+  Serial.begin(9600);
   vTaskPrioritySet(NULL, taskMediumPriority);
+  initializeFilesystem();
   if (!configLoader.loadConfig(&configuration))
   {
     Serial.println("main: Failed to load configuration. Using default configuration.");
